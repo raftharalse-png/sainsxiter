@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>snx.sainsxiters.com</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+
+<style>
+body {
+  margin:0;
+  font-family:'Orbitron',sans-serif;
+  color:white;
+  background:black;
+}
+
+/* LOADING */
+#loading {
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:black;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  z-index:9999;
+}
+
+.loader-circle {
+  width:80px;
+  height:80px;
+  border:3px solid rgba(255,0,0,0.2);
+  border-top:3px solid red;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform:rotate(360deg); }
+}
+
+.progress {
+  width:200px;
+  height:4px;
+  background:#111;
+  margin-top:10px;
+}
+
+.progress-bar {
+  height:100%;
+  background:red;
+  width:0%;
+}
+
+/* VIDEO (TIDAK DIUBAH) */
+video {
+  position:fixed;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  z-index:-2;
+  background:black;
+}
+
+.overlay {
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.3);
+  z-index:-1;
+}
+
+/* TAMPILAN */
+.hero {
+  text-align:center;
+  padding:80px 20px 40px;
+}
+
+.hero h1 {
+  font-size:32px;
+}
+
+.hero button {
+  background:red;
+  border:none;
+  padding:12px 20px;
+  color:white;
+  border-radius:8px;
+  margin-top:15px;
+}
+
+.products {
+  padding:20px;
+}
+
+.card {
+  background:rgba(0,0,0,0.6);
+  margin-bottom:15px;
+  padding:15px;
+  border-radius:10px;
+  text-align:center;
+  border:1px solid rgba(255,0,0,0.2);
+}
+
+.card button {
+  margin-top:10px;
+  padding:10px;
+  background:red;
+  border:none;
+  color:white;
+  border-radius:6px;
+}
+
+.cart {
+  padding:20px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div class="loader-circle"></div>
+  <div style="margin-top:15px;">SNX SAINSXITER</div>
+  <div class="progress">
+    <div class="progress-bar" id="bar"></div>
+  </div>
+  <div id="percent">0%</div>
+</div>
+
+<!-- VIDEO -->
+<video id="video.bg" autoplay loop muted playsinline>
+  <source src="video.mp4" type="video/mp4">
+</video>
+
+<div class="overlay"></div>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>SNX SAINSXITER</h1>
+  <button onclick="checkoutWA()">BELI SEKARANG</button>
+</div>
+
+<!-- PRODUK -->
+<div class="products">
+  <div class="card">
+    <h3>FILE DRAG HS 75%</h3>
+    <p>Rp 25.000</p>
+    <button onclick="tambah('FILE DRAG HS 75%',25000)">Tambah</button>
+  </div>
+
+  <div class="card">
+    <h3>FILE DRAG HS 85%</h3>
+    <p>Rp 35.000</p>
+    <button onclick="tambah('FILE DRAG HS 85%',35000)">Tambah</button>
+  </div>
+
+  <div class="card">
+    <h3> FILE DRAG HS 95%</h3>
+    <p>Rp 50.000</p>
+    <button onclick="tambah('FILE DRAG HS 95',50000)">Tambah</button>
+  </div>
+</div>
+
+<!-- CART -->
+<div class="cart">
+  <h2>Keranjang</h2>
+  <div id="cart"></div>
+  <p>Total: Rp <span id="total">0</span></p>
+  <button onclick="checkoutWA()">Checkout</button>
+</div>
+
+<script>
+let video = document.getElementById("bgvid");
+let keranjang = [];
+let total = 0;
+
+/* LOADING */
+let bar = document.getElementById("bar");
+let percent = document.getElementById("percent");
+let load = 0;
+
+let interval = setInterval(()=>{
+  load++;
+  bar.style.width = load + "%";
+  percent.innerText = load + "%";
+
+  if(load >= 100){
+    clearInterval(interval);
+    document.getElementById("loading").style.display = "none";
+
+    video.muted = false;
+    video.play().catch(()=>{});
+  }
+}, 30);
+
+/* SOUND FIX */
+function aktifkanSuara(){
+  video.muted = false;
+  video.play().catch(()=>{});
+}
+document.addEventListener("click", aktifkanSuara, {once:true});
+document.addEventListener("touchstart", aktifkanSuara, {once:true});
+
+/* TAMBAH PRODUK */
+function tambah(nama,harga){
+  keranjang.push({nama,harga});
+  total += harga;
+  render();
+}
+
+/* RENDER CART */
+function render(){
+  let cart = document.getElementById("cart");
+  cart.innerHTML = "";
+
+  keranjang.forEach((item,i)=>{
+    cart.innerHTML += `
+      <div style="display:flex;justify-content:space-between;">
+        ${item.nama}
+        <button onclick="hapus(${i})">X</button>
+      </div>
+    `;
+  });
+
+  document.getElementById("total").innerText = total;
+}
+
+/* HAPUS */
+function hapus(i){
+  total -= keranjang[i].harga;
+  keranjang.splice(i,1);
+  render();
+}
+
+/* CHECKOUT WA */
+function checkoutWA(){
+  if(keranjang.length === 0){
+    alert("barang belum di chekout");
+    return;
+  }
+
+  let nomor = "628979616192"; // GANTI NOMOR KAMU
+  let pesan = "Pesanan SNX:%0A";
+
+  keranjang.forEach((item,i)=>{
+    pesan += `${i+1}. ${item.nama} - Rp ${item.harga}%0A`;
+  });
+
+  pesan += `Total: Rp ${total}`;
+
+  window.open(`https://wa.me/${nomor}?text=${pesan}`);
+}
+</script>
+
+</body>
+</html>
